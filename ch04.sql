@@ -62,6 +62,7 @@ VALUES
 	(26, 1549.27, 'Udemy', '2025-02-14 11:00:01'),
 	(27, -480.78, 'Bank of America', '2025-02-14 17:30:12');
     
+
 -- Google과 거래한 금액의 합계 구하기
 select sum(amount)
 from transactions

@@ -111,3 +111,93 @@ VALUES
 -- 데이터 조회
 SELECT *
 FROM events;
+
+-- store DB 생성 및 진입
+create database store;
+use store;
+
+-- orders 테이블 만들기
+create table orders (
+	id integer,
+    name varchar(255),
+    price decimal(10,2),
+    quantity integer,
+    created_at datetime,
+    primary key(id)
+);
+
+-- orders 데이터 삽입
+INSERT INTO orders (id, name, price, quantity, created_at)
+VALUES
+	(1, '생돌김 50매', 5387.75, 1, '2024-10-24 01:19:44'),
+	(2, '그릭 요거트 400g, 2개', 7182.25, 2, '2024-10-24 01:19:44'),
+	(3, '냉장 닭다리살 500g', 6174.50, 1, '2024-10-24 01:19:44'),
+	(4, '냉장 고추장 제육 1kg', 9765.00, 1, '2024-10-24 01:19:44'),
+	(5, '결명자차 8g * 18티백', 4092.25, 1, '2024-10-24 01:19:44'),
+	(6, '올리브 오일 1l', 17990.00, 1, '2024-11-06 22:52:33'),
+	(7, '두유 950ml, 20개', 35900.12, 1, '2024-11-06 22:52:33'),
+	(8, '카카오 닙스 1kg', 12674.50, 1, '2024-11-06 22:52:33'),
+	(9, '손질 삼치살 600g', 9324.75, 1, '2024-11-16 14:55:23'),
+	(10, '자숙 바지락 260g', 6282.00, 1, '2024-11-16 14:55:23'),
+	(11, '크리스피 핫도그 400g', 7787.50, 2, '2024-11-16 14:55:23'),
+	(12, '우유 900ml', 4360.00, 2, '2024-11-16 14:55:23'),
+	(13, '모둠 해물 800g', 4770.15, 1, '2024-11-28 11:12:09'),
+	(14, '토마토 케첩 800g', 3120.33, 3, '2024-11-28 11:12:09'),
+	(15, '계란 30구', 8490.00, 2, '2024-12-11 12:34:56'),
+	(16, '해물 모듬 5팩 묶음 400g', 9800.50, 4, '2024-12-11 12:34:56'),
+	(17, '칵테일 새우 900g', 22240.20, 1, '2024-12-11 12:34:56'),
+	(18, '토마토 케첩 1.43kg', 7680.25, 1, '2024-12-11 12:34:56'),
+	(19, '국내산 양파 3kg', 5192.00, 1, '2024-12-11 12:34:56'),
+	(20, '국내산 깐마늘 1kg', 9520.25, 1, '2024-12-11 12:34:56');
+
+-- name이 '캐첩'인 상품 조회 -> LIKE 키워드 사용
+select *
+from orders
+where name like '케첩';
+-- 결과 값 빈 테이블 나옴 -> 캐첩이라는 상품명이 없음 다 ~캐첩 이런 상품들! '캐첩'이라는 키워드가 포함되어 있는 경우 어떻게 해결할까?
+
+-- name에 '캐첩'이 포함된 상품 조회 -> 와일드카드 사용
+select *
+from orders
+where name like '%케첩%';
+
+-- 11월에 주문받은 상품 조회
+select *
+from orders
+where month(created_at) = 11;
+
+-- 11월에 주문받은 상품 개수의 합계
+select sum(quantity)
+from orders
+where month(created_at) = 11;
+
+-- 오전에 주문받은 상품 조회
+select *
+from orders
+where hour(created_at) < 12;
+
+
+-- 오전에 주문받은 매출의 합꼐
+select sum(price * quantity)
+from orders
+where hour(created_at) < 12;
+
+-- 오전에 주문받은 상품 조회
+select *
+from orders
+where hour(created_at) < 12;
+
+-- price 가 10000~20000 사이에 있는 주문 조회
+select *
+from orders
+where price between 10000 and 20000;
+
+-- 2024-11-15 ~ 2024-12-15 사이의 주문 개수 합계
+select count(*)
+from orders
+where created_at between '2024-11-15' and '2024-12-15';
+
+-- 상품명의 첫 글자 'ㄱ'으로 시작하는 주문 조회
+select *
+from orders
+where name between 'ㄱ' and '깋';
