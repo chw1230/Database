@@ -26,7 +26,7 @@ select avg(height)
 from students;
 
 -- 성별에 따른 평균 키
-select avg(height)
+select gender, avg(height)
 from students
 group by gender; -- group by 절을 통해서 그룹화 하기!
 
