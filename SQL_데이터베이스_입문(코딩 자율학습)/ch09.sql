@@ -56,6 +56,11 @@ from (
     group by order_id
 ) as sub; -- From 절에 서브 쿼리 넣을 때에는 별칭 지정하기!
 
+-- 서브 쿼리  : 상품 아이디별 주문 개수 집계
+	select product_id , sum(count) as 'total_count'
+    from order_details
+    group by product_id;
+    
 -- join 절에서의 서브쿼리 실습
 -- 메인 쿼리 : 상품별 주문 개수 집계
 select name as '상품명' , sub.total_count as '주문 개수'
@@ -110,7 +115,8 @@ select distinct u.id , nickname
 from users u
 join orders o on u.id = o.user_id
 join order_details od on o.id = od.order_id
-join products p on od.product_id = p.id ;
+join products p on od.product_id = p.id 
+where name in ('우유 식빵','크림 치즈');
 
 -- any 연산자 실습
 -- 메인쿼리 : 우유 식빵이나 플레인 베이글보다 저렴한 상품이 있는지 조회
