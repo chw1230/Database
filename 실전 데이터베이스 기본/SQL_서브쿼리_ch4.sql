@@ -119,3 +119,113 @@ where price >= (
 	select avg(price)
 	from products p2
     where p2.category = p1.category); -- 서브 쿼리의 의미 서브 쿼리에서 평균을 계산할 때, 메인 쿼리가 보고 있는 상품(p1)과 동일한 카테고리를 가진 상품들(p2)만을 대상으로 하라는 의미!
+    
+-- 상관 서브 쿼리 2
+-- 지금까지 단 한번이라도 주문된 적 있는 상품 찾기
+select product_id, name, price
+from products;
+
+select distinct product_id
+from orders;
+-- 따로 나누어 조회해보니 1,2,3,4 만 주문이 되었음을 알 수 있음!
+
+-- 쿼리를 하나로 합치기!
+select product_id, name, price
+from products
+where product_id in (select order_id
+					from orders);
+-- 이렇게 in 을 사용해서 직관적으로 나타낼 수 있음! 하지만 실무에서는 이렇게 사용하지 않는다! orders 테이블이 엄청나게 큰 경우에는 비효율적이다!!
+-- 실무에서는 exist 키워드를 사용한다. exist 키워드는 값의 반환이 중요하지 않고, 값의 유무만 체크한다! 존재하면 true 아니면 false
+select product_id, name, price
+from products p
+where exists (select 1 -- 상수를 이용해서 불필요한 데이터 피하기
+			from orders o
+            where p.product_id = o.product_id); -- 상관 서브 쿼리 사용하기
+-- exists는 값이 하나라도 있으면 true 반환해서 바로바로 통과
+-- in VS exists 
+/*
+실행 방식 : In - 서브쿼리의 결과를 메인 쿼리에 가져가서 사용 / Exists - 케인 쿼리의 각 행에 대해서 서브 쿼리를 실행
+특징 : In - 서브 쿼리의 결과가 작을 때 직관적이고 빠름 / Exists - 상관 서브쿼리. 서브 쿼리의 테이블이 클 때 효율적
+최적화 : orders 테이블 전체를 스캔해야함 / Exists - 값이 하나라도 존재하면 그 즉시 중단하고 1을 반환
+*/
+
+-- SELECT 서브쿼리
+-- 비상관 서브쿼리
+-- 전체 상품의 평균 가격을 모든 행에 함께 표시해서 개별 상품 가격이 평균과 얼마나 차이 나는지 비교
+
+-- 1번 전체 상품의 평균 가격 구하기
+select avg(price) from products;
+
+-- 이 쿼리를 select 절에 그대로 넣어보기
+select 
+	name, 
+    price,
+    (select avg(price) from products ) as avg_price -- 얘는 스칼라 서브 쿼리임 -> select에 사용하는 서브쿼리는 스칼라 서브 쿼리만 가능함
+from 
+	products;
+/* 쿼리 실행 순서 :
+1. select 절의 서브쿼리를 단 하 번 먼저 실행
+2. 이 값을 기억하고 메인 쿼리 실행
+3. products의 각 행을 가져 올 때 마다, 계산 해둔 값을 가져옴 */
+-- 지금 처럼 서브쿼리가 외부 쿼리의 컬럼을 참조하지 않아 독립적으로 실행될 수 있는 경우를 비상관 서브쿼리라고 함!!!! 위에서 배운 것 처럼!
+
+-- 상관 서브쿼리 
+-- 전체 상품 목록을 조회하면서, 각 상품별로 총 몇 번의 주문이 있었는지 '총 주문 횟수' 함계 보기
+-- 이제 이렇게 된다면 전체 상춤의 평균 처럼 고정된 값이 아니라, 특정 상품의 주문 횟수 가져오고해야하는 것!
+select 
+	p.product_id,
+    p.name,
+    p.price,
+    (select count(*) from orders o where o.product_id = p.product_id ) as order_count -- 이 서브 쿼리의 가장 중요한 특징, 바깥 쪽 메인 쿼리의 각 행마다 개별적으로, 반복적으로 실행될 수 있다는 점, 서브쿼리가 메인쿼리의 컬럼을 참조하는 관계를 가질 때 이를 상관 서브쿼리 라한다.
+from
+	products p;
+-- 가장 중요한 부분 -> 서브쿼리 안의 where o.product_id = p.product_id => p.product_id 는 현재 p 가 처리하고 있는 행의 product_id를 의미한다.
+/* 쿼리 실행 흐름 :
+1. 메인 쿼리가 products 테이블의 행을 읽는다
+2. 행의 product_count를 계산하기 위해서 스칼라 서브쿼리가 실행된다.
+3. 서브쿼리의 p.product_id에 1이라는 값이 전달되고 서브쿼리를 통해서 3이라는 값을 계산한다.
+4. 나머지 행들도 그대로 진행한다.
+*/
+-- 서브 쿼리의 성능 문제 피해갈 수 없다.
+-- join으로 해결하자
+select 
+	p.product_id, p.name, p.price,
+    count(o.order_id) as order_count
+from 
+	products p
+left join
+	orders o on p.product_id = o.product_id
+group by
+	p.product_id, p.name, p.price;
+    
+-- 테이블 서브쿼리 
+-- from 절에 위치하는 서브쿼리, 실행결과가 마치 하나의 독립된 가상 테이블처럼 사용 -> 테이블 서브쿼리,
+-- 쿼리 내 인라인에서 정의되는 뷰와 같다고 해서 인라인 뷰라고도 부른다.
+	
+-- 예제 : 각 상품 카테고리 별로, 가장 비싼 상품의 이름과 가격을 조회하기
+-- 1단계 : 카테고리 별 가장 비싼 상품 가져오기
+select
+	category,
+    max(price)
+from 
+	products
+group by 
+	category;
+    
+-- 2단계 : 1단계를 바탕으로 가장 비싼 상품의 이름과 가격을 조회하기
+select 
+	p.product_id,
+    p.name,
+    p.price
+from 
+	products p
+join 
+	( select
+	category,
+    max(price) as max_price
+from 
+	products
+group by 
+	category ) as cmp ON P.category = cmp.category and p.price = cmp.max_price;
+-- P.category = cmp.category => 카테고리별로만 비교하도록 맞춰줌 / p.price = cmp.max_price => 그 카테고리 안에서 최고가인 상품 // 둘 다 만족을 해야 join하도록 하기!
+-- 서브 쿼리의 결과를 가상 테이블로 여겨서 실행하기!
