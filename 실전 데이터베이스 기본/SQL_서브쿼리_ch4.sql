@@ -229,3 +229,39 @@ group by
 	category ) as cmp ON P.category = cmp.category and p.price = cmp.max_price;
 -- P.category = cmp.category => 카테고리별로만 비교하도록 맞춰줌 / p.price = cmp.max_price => 그 카테고리 안에서 최고가인 상품 // 둘 다 만족을 해야 join하도록 하기!
 -- 서브 쿼리의 결과를 가상 테이블로 여겨서 실행하기!
+
+-- 서브쿼리 VS JOIN
+-- 문제 상황 : 서울에 거주하는 모든 고객들의 주문 목록을 조회해라 
+
+-- 서브쿼리 이용하기
+-- 1번 서울에 거주하는 고객 찾기
+select user_id
+from users
+where address like '서울%';
+
+-- 2번 그다음, 이 user_id 목록에 포함된 order_id 를 가진 주문들을 찾기
+select order_id, product_id, order_date, quantity, status
+from orders
+where user_id in ( select user_id
+				  from users
+                  where address like '서울%');
+                  
+-- join 이용하기
+select o.order_id, o.user_id,o.product_id, order_date
+from orders o
+left join users u on o.user_id = u.user_id
+where u.address like '서울%';
+
+-- 성능 비교하기!!!!! => 당연히 join이 더 좋음!
+-- 하지만 최근에는 간단한 서브 쿼리는 데이터베이스의 '두뇌' 역할을 하는 쿼리 옵티마이저(Query Optimizer)가 자동으로 join으로 바꿔서 실행하는 경우가 대부분!
+
+-- 가독성 비교하기 : 서브쿼리는 쿼리의 논리적 단계와 단계적으로 이해하는 경우에 좋음!, join은 전체적인 데이터에 대한 정보를 통해 이해나는 경우에 좋음!
+
+-- 그래서 언제 뭘 써야하는 거야?!
+/*
+정답 : 없음.. 하지만 우선순위 존재
+1. join을 우선적으로 고려하자
+2. join의 표현 방식이 너무 복잡하면 서브쿼리쓰자
+3. in 서브쿼리의 대아능로, existis라는 서브쿼리 연산자 사용도 고려하자( 존재 여부만 체크해서 효율적으로 동작함 )
+4. 성능이 의심되면 explain과 같은 도구로 확인해보자
+ */
