@@ -1,0 +1,34 @@
+# --- Python Project (MySQL_Python_Program) ---
+# 민감 정보
+MySQL_Python_Program/.env
+
+# 파이썬 캐시 및 가상환경
+MySQL_Python_Program/__pycache__/
+MySQL_Python_Program/venv/
+MySQL_Python_Program/.venv/
+
+# IDE 설정
+MySQL_Python_Program/.idea/
+
+# 데이터 파일 (필요시 주석 해제)
+# MySQL_Python_Program/*.csv
+
+
+# --- Java Project (MySQL_JAVA_Program) ---
+# 민감 정보
+MySQL_JAVA_Program/*.properties
+
+# IntelliJ 빌드 결과물
+MySQL_JAVA_Program/out/
+
+# IDE 설정
+MySQL_JAVA_Program/.idea/
+MySQL_JAVA_Program/*.iml
+
+# Java 컴파일 결과물
+MySQL_JAVA_Program/*.class
+
+
+# --- 공통 ---
+# 로그 파일
+*.log
